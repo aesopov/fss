@@ -118,10 +118,8 @@ export interface CompiledSelector {
 export interface SelectorIndexKeys {
   /** Primary name key from [name="..."] attribute */
   nameKey: string | null
-  /** Full extension key from [ext="..."] with $= or = */
-  fullExtKey: string | null
-  /** Base extension key from [base-ext="..."] or simple [ext="..."] */
-  baseExtKey: string | null
+  /** Extension key — last segment of the ext value (e.g. "ts" for both ext="ts" and ext="test.ts") */
+  extKey: string | null
   /** Language key from [lang="..."] */
   langKey: string | null
   /** Type constraint */
@@ -186,10 +184,8 @@ export interface CompiledStylesheet {
   // ─── Rule Index (for sub-O(N) lookup) ──────────────────────────
   /** Rules indexed by exact [name="..."] match */
   byName: Map<string, CompiledRule[]>
-  /** Rules indexed by exact [ext="..."] (fullExt) match */
-  byFullExt: Map<string, CompiledRule[]>
-  /** Rules indexed by [base-ext="..."] or simple ext match */
-  byBaseExt: Map<string, CompiledRule[]>
+  /** Rules indexed by extension (last segment of ext value, e.g. "ts") */
+  byExt: Map<string, CompiledRule[]>
   /** Rules indexed by [lang="..."] match */
   byLang: Map<string, CompiledRule[]>
   /** Rules indexed by type selector */

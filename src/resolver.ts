@@ -82,6 +82,17 @@ function matchAttr(cond: AttrCondition, node: FsNode): boolean {
   const strValue = String(nodeValue)
   const condValue = cond.value ?? ''
 
+  // Special ext matching: [ext="ts"] does suffix match on dot boundaries
+  // so ext="ts" matches both "ts" and "test.ts"
+  if (cond.name === 'ext') {
+    if (cond.operator === '=') {
+      return strValue === condValue || strValue.endsWith('.' + condValue)
+    }
+    if (cond.operator === '!=') {
+      return strValue !== condValue && !strValue.endsWith('.' + condValue)
+    }
+  }
+
   switch (cond.operator) {
     case '=':
       return strValue === condValue
@@ -91,7 +102,6 @@ function matchAttr(cond: AttrCondition, node: FsNode): boolean {
       return strValue.endsWith(condValue)
     case '~=':
       // Space-separated word match (like CSS class matching)
-      // For extensions, also check if segment is present
       return strValue === condValue || strValue.split(/[.\s]/).includes(condValue)
     case '!=':
       return strValue !== condValue
@@ -110,8 +120,6 @@ function getNodeAttrValue(name: string, node: FsNode): string | boolean | undefi
       return node.name
     case 'ext':
       return node.fullExt
-    case 'base-ext':
-      return node.baseExt
     case 'lang':
       return node.lang
     case 'path':
@@ -171,10 +179,9 @@ function matchRule(rule: CompiledRule, node: FsNode): boolean {
  */
 function computeBucketKey(sheet: CompiledStylesheet, node: FsNode): string {
   const nameKey = sheet.byName.has(node.name) ? node.name : '*'
-  const fullExtKey = node.fullExt && sheet.byFullExt.has(node.fullExt) ? node.fullExt : '*'
-  const baseExtKey = node.baseExt && sheet.byBaseExt.has(node.baseExt) ? node.baseExt : '*'
+  const extKey = node.baseExt && sheet.byExt.has(node.baseExt) ? node.baseExt : '*'
   const langKey = node.lang && sheet.byLang.has(node.lang) ? node.lang : '*'
-  return `${node.type}\0${nameKey}\0${baseExtKey}\0${fullExtKey}\0${langKey}`
+  return `${node.type}\0${nameKey}\0${extKey}\0${langKey}`
 }
 
 // Per-stylesheet cache of merged candidate lists, keyed by bucket key.
@@ -218,14 +225,9 @@ function gatherCandidates(sheet: CompiledStylesheet, node: FsNode): CompiledRule
   // Lookup by name (most specific)
   addRules(sheet.byName.get(node.name))
 
-  // Lookup by full extension
-  if (node.fullExt) {
-    addRules(sheet.byFullExt.get(node.fullExt))
-  }
-
-  // Lookup by base extension
+  // Lookup by extension (last segment)
   if (node.baseExt) {
-    addRules(sheet.byBaseExt.get(node.baseExt))
+    addRules(sheet.byExt.get(node.baseExt))
   }
 
   // Lookup by language

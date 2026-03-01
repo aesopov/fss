@@ -38,8 +38,38 @@ describe('resolveStyle', () => {
     const regular = node({ name: 'index.ts' })
     const test = node({ name: 'utils.test.ts' })
 
+    // ext="ts" matches both index.ts and utils.test.ts (suffix match)
+    // ext="test.ts" has higher specificity and overrides for test files
     expect(resolveStyle(sheet, regular)).toEqual({ icon: 'url(ts.svg)' })
     expect(resolveStyle(sheet, test)).toEqual({ icon: 'url(test.svg)' })
+  })
+
+  it('[ext="ts"] matches files with compound extensions', () => {
+    const sheet = parseStylesheet(`
+      file[ext="ts"] { color: red; }
+    `)
+
+    const simple = node({ name: 'index.ts' })
+    const compound = node({ name: 'utils.test.ts' })
+    const triple = node({ name: 'a.b.ts' })
+    const noMatch = node({ name: 'index.js' })
+
+    expect(resolveStyle(sheet, simple)).toEqual({ color: 'red' })
+    expect(resolveStyle(sheet, compound)).toEqual({ color: 'red' })
+    expect(resolveStyle(sheet, triple)).toEqual({ color: 'red' })
+    expect(resolveStyle(sheet, noMatch)).toEqual({})
+  })
+
+  it('ext specificity: more segments win', () => {
+    const sheet = parseStylesheet(`
+      file[ext="test.ts"] { icon: url(test.svg); }
+      file[ext="ts"] { icon: url(ts.svg); }
+    `)
+
+    // Even though ext="ts" comes after ext="test.ts",
+    // ext="test.ts" has higher specificity (2 segments vs 1)
+    const testFile = node({ name: 'utils.test.ts' })
+    expect(resolveStyle(sheet, testFile)).toEqual({ icon: 'url(test.svg)' })
   })
 
   it('matches [name="..."] selector', () => {

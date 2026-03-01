@@ -316,9 +316,11 @@ function computeSpecificity(
   for (const attr of target.attrs) {
     if (attr.name === 'name' && attr.operator === '=') {
       score += 1000
-    } else if (attr.name === 'ext' && attr.operator === '=' && attr.value?.includes('.')) {
-      // Full extension match (e.g. ext="test.ts") scores higher than base ext
-      score += 500
+    } else if (attr.name === 'ext' && attr.operator === '=') {
+      // Specificity scales by number of dot-segments:
+      // ext="ts" → 1 segment → 100, ext="test.ts" → 2 segments → 200
+      const segments = (attr.value ?? '').split('.').length
+      score += 100 * segments
     } else {
       score += 100
     }
@@ -477,8 +479,7 @@ function parseTableConfig(atrule: Atrule, config: TableConfig): void {
 function extractIndexKeys(selector: CompiledSelector): SelectorIndexKeys {
   const keys: SelectorIndexKeys = {
     nameKey: null,
-    fullExtKey: null,
-    baseExtKey: null,
+    extKey: null,
     langKey: null,
     typeKey: selector.target.typeConstraint,
   }
@@ -492,15 +493,10 @@ function extractIndexKeys(selector: CompiledSelector): SelectorIndexKeys {
         break
       case 'ext':
         if (attr.value != null) {
-          if (attr.value.includes('.')) {
-            keys.fullExtKey = attr.value
-          } else {
-            keys.baseExtKey = attr.value
-          }
+          // Index by last dot-segment (e.g. "ts" for both "ts" and "test.ts")
+          const lastDot = attr.value.lastIndexOf('.')
+          keys.extKey = lastDot >= 0 ? attr.value.substring(lastDot + 1) : attr.value
         }
-        break
-      case 'base-ext':
-        if (attr.value != null) keys.baseExtKey = attr.value
         break
       case 'lang':
         if (attr.value != null) keys.langKey = attr.value
@@ -524,8 +520,7 @@ function buildIndex(
     sortingRules,
     tableConfig,
     byName: new Map(),
-    byFullExt: new Map(),
-    byBaseExt: new Map(),
+    byExt: new Map(),
     byLang: new Map(),
     byType: new Map(),
     genericRules: [],
@@ -541,11 +536,8 @@ function buildIndex(
       if (keys.nameKey) {
         addToMap(sheet.byName, keys.nameKey, rule)
         indexed = true
-      } else if (keys.fullExtKey) {
-        addToMap(sheet.byFullExt, keys.fullExtKey, rule)
-        indexed = true
-      } else if (keys.baseExtKey) {
-        addToMap(sheet.byBaseExt, keys.baseExtKey, rule)
+      } else if (keys.extKey) {
+        addToMap(sheet.byExt, keys.extKey, rule)
         indexed = true
       } else if (keys.langKey) {
         addToMap(sheet.byLang, keys.langKey, rule)

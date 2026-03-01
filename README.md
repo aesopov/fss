@@ -12,7 +12,7 @@
 - **`:root` pseudo-class**: `folder:root` matches the top-level folder
 - **`:is()` grouping**: `file:is([ext="ts"], [ext="tsx"])`
 - **Descendant combinator**: `folder[name=".github"] folder[name="workflows"]`
-- **Compound extensions**: `file[ext="test.ts"]` vs `file[ext="ts"]`
+- **Compound extensions**: `file[ext="test.ts"]` overrides `file[ext="ts"]` — specificity scales by segment count
 - **Language selector**: `file[lang="typescript"]` — match by VS Code language ID
 - **`@theme` blocks**: `light`, `dark`, `high-contrast`, `high-contrast-light` — like VS Code
 - **`@sorting` block** for sort priority/grouping
@@ -213,7 +213,7 @@ Resolve sorting declarations for a node.
 
 ### `createFsNode(opts): FsNode`
 
-Create a node with auto-computed `baseExt` and `fullExt`.
+Create a node with auto-computed extensions.
 
 ### `CachedResolver`
 

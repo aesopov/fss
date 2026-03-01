@@ -11,20 +11,21 @@ describe('rule indexing', () => {
     expect(sheet.byName.get('Dockerfile')!.length).toBe(1)
   })
 
-  it('indexes rules by base extension', () => {
+  it('indexes rules by extension', () => {
     const sheet = parseStylesheet(`
       file[ext="ts"] { icon: url(ts.svg); }
     `)
 
-    expect(sheet.byBaseExt.has('ts')).toBe(true)
+    expect(sheet.byExt.has('ts')).toBe(true)
   })
 
-  it('indexes rules by full extension', () => {
+  it('indexes compound extension rules by last segment', () => {
     const sheet = parseStylesheet(`
       file[ext="test.ts"] { icon: url(test.svg); }
     `)
 
-    expect(sheet.byFullExt.has('test.ts')).toBe(true)
+    // "test.ts" is indexed under its last segment "ts"
+    expect(sheet.byExt.has('ts')).toBe(true)
   })
 
   it('indexes rules by type', () => {
@@ -79,8 +80,19 @@ describe('rule indexing', () => {
       file[ext="rs"] { icon: url(rs.svg); }
     `)
 
-    expect(sheet.byBaseExt.has('ts')).toBe(true)
-    expect(sheet.byBaseExt.has('js')).toBe(true)
-    expect(sheet.byBaseExt.has('rs')).toBe(true)
+    expect(sheet.byExt.has('ts')).toBe(true)
+    expect(sheet.byExt.has('js')).toBe(true)
+    expect(sheet.byExt.has('rs')).toBe(true)
+  })
+
+  it('both simple and compound ext rules are indexed under the same bucket', () => {
+    const sheet = parseStylesheet(`
+      file[ext="ts"] { icon: url(ts.svg); }
+      file[ext="test.ts"] { icon: url(test.svg); }
+    `)
+
+    // Both rules are indexed under "ts" in byExt
+    expect(sheet.byExt.has('ts')).toBe(true)
+    expect(sheet.byExt.get('ts')!.length).toBe(2)
   })
 })
