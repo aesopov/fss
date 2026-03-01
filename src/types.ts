@@ -45,7 +45,7 @@ export interface FsNode {
   /** Bitmask of current state flags */
   stateFlags: StateFlags
   /** Arbitrary metadata attributes for matching (e.g. inVcsRepo, vcsStatus) */
-  meta: Record<string, string | boolean>
+  meta: Record<string, unknown>
 }
 
 // ─── Compiled Selector Structures ────────────────────────────────────────────

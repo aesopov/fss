@@ -12,7 +12,7 @@ export function createFsNode(opts: {
   lang?: string
   parent?: FsNode
   stateFlags?: StateFlags
-  meta?: Record<string, string | boolean>
+  meta?: Record<string, unknown>
 }): FsNode {
   const dotIndex = opts.name.indexOf('.')
   const lastDotIndex = opts.name.lastIndexOf('.')
