@@ -1,6 +1,6 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: "src/index.ts",
+  entry: { index: "src/index.ts", helpers: "src/helpers.ts" },
   exports: true,
 });

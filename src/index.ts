@@ -19,18 +19,15 @@ export type {
   SelectorIndexKeys,
   PseudoState,
   ThemeKind,
-} from './types.js'
+} from './types'
 
-export { StateFlags, PSEUDO_TO_FLAG } from './types.js'
+export { StateFlags, PSEUDO_TO_FLAG } from './types'
 
 // Parser
-export { parseStylesheet } from './parser.js'
+export { parseStylesheet } from './parser'
 
 // Resolver
-export { resolveStyle, resolveSorting, computeStyleKey, CachedResolver } from './resolver.js'
+export { resolveStyle, resolveSorting, computeStyleKey, CachedResolver } from './resolver'
 
 // Layer system
-export { createLayer, LayerPriority, LayeredResolver } from './layers.js'
-
-// Helpers
-export { createFsNode } from './helpers.js'
+export { createLayer, LayerPriority, LayeredResolver } from './layers'
